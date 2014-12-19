@@ -1,0 +1,17 @@
+hosts:
+    - hostname1
+auth:
+    user: username
+    pass: password
+tasks:
+    -
+     name: uptime
+     desc: check uptime 
+     uptime: 
+    - 
+     name: sar
+     desc: check sar
+     sar:
+
+
+
