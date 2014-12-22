@@ -8,29 +8,20 @@ import (
 	"github.com/fatih/color"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"os"
 )
 
 type Config struct {
 	Hosts []string
 	Auth  Auth
+	Tasks []map[string]string
 }
 
 type Auth struct {
-	Name string
+	User string
 	Pass string
 }
 
-func genCommand(task string) string {
-	switch task {
-	case "uptime":
-		return "uptime"
-	default:
-		return task
-	}
-}
-
-func execute(config *ssh.ClientConfig, hostname string, task string) {
+func execute(config *ssh.ClientConfig, hostname string, taskcmd string) {
 	client, err := ssh.Dial("tcp", hostname+":22", config)
 	if err != nil {
 		panic("unable to connect: %s" + err.Error())
@@ -45,8 +36,7 @@ func execute(config *ssh.ClientConfig, hostname string, task string) {
 
 	var b bytes.Buffer
 	session.Stdout = &b
-	cmd := genCommand(task)
-	if err := session.Run(cmd); err != nil {
+	if err := session.Run(taskcmd); err != nil {
 		color.Red("[%s]", hostname)
 		fmt.Print(err)
 	} else {
@@ -56,27 +46,35 @@ func execute(config *ssh.ClientConfig, hostname string, task string) {
 }
 
 func main() {
-	bytes, err = ioutil.ReadFile("opssh.yaml")
+	flag.Parse()
+
+	bytes, err := ioutil.ReadFile("gossh.yaml")
 	if err != nil {
-		fmt.Print("read config file opssh.yaml error: " + err)
+		panic("read config file opssh.yaml error: " + err.Error())
 	}
 
-	var conf Conf
-	err = yaml.Unmarshal(bytes, &conf)
+	var config Config
+	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
 		panic(err)
 	}
 
-	flag.Parse()
-
-	config := &ssh.ClientConfig{
-		User: conf.auth.user,
+	sshconf := &ssh.ClientConfig{
+		User: config.Auth.User,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(conf.auth.pass),
+			ssh.Password(config.Auth.Pass),
 		},
 	}
 
-	for _, hostname := range conf.hosts {
-		execute(config, hostname, flag.Arg(0))
+	tasks := make(map[string]map[string]string)
+	for _, task := range config.Tasks {
+		tasks[task["name"]] = task
 	}
+
+	for _, hostname := range config.Hosts {
+		taskcmd := tasks[flag.Arg(0)]["cmd"]
+		execute(sshconf, hostname, taskcmd)
+
+	}
+
 }

@@ -1,4 +1,4 @@
-opssh
+gossh
 =====
 
-An OPS Tool For manage an group of servers
+An ops tool for manage hundreds of servers via ssh

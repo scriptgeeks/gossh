@@ -1,0 +1,10 @@
+hosts:
+    - example.com
+auth:
+    user: example
+    pass: password
+tasks:
+    - 
+     name: uptime
+     desc: batch uptime
+     cmd: uptime
