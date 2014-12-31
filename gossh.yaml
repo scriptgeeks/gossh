@@ -1,8 +1,8 @@
 hosts:
-    - example.com
+    - scriptgeek.co
 auth:
-    user: example
-    pass: password
+    user: oc
+    pass: harrywang
 tasks:
     - 
      name: uptime
